@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "real-estate"
+version = "0.1.0"
+description = ""
+authors = ["Maksim Kovalenko"]
+readme = "README.md"
+packages = [{include = "real_estate"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^2.1.4"
+numpy = "^1.26.2"
+scikit-learn = "^1.3.2"
+lightgbm = "^4.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

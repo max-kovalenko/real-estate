@@ -1,0 +1,2 @@
+defaults:
+- lgbm: best_model

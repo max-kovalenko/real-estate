@@ -1,6 +1,6 @@
 import os
-import pickle
 
+from joblib import dump, load
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.preprocessing import StandardScaler
 
@@ -11,8 +11,7 @@ class MyStandardScaler(TransformerMixin, BaseEstimator):
         self.cols_to_transform = ["bed", "bath", "acre_lot"]
 
         if (file_path is not None) and (os.path.isfile(self.file_path)):
-            with open(self.file_path, "rb") as fp:
-                self.scl = pickle.load(fp)["scaler"]
+            self.scl = load(self.file_path)["scaler"]
         else:
             self.scl = None
 
@@ -21,10 +20,9 @@ class MyStandardScaler(TransformerMixin, BaseEstimator):
     def fit(self, df):
         self.scl = StandardScaler()
         self.scl.fit(df[self.cols_to_transform])
-        pckl_obj = {"scaler": self.scl}
+        jbl_obj = {"scaler": self.scl}
         if self.file_path is not None:
-            with open(self.file_path, "wb") as fp:
-                pickle.dump(pckl_obj, fp)
+            dump(jbl_obj, self.file_path)
 
         pass
 

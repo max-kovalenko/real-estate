@@ -2,16 +2,18 @@
 name = "real-estate"
 version = "0.1.0"
 description = ""
-authors = ["Maksim Kovalenko"]
+authors = ["max-kovalenko <max.kovalenko.workshop@gmail.com>"]
 readme = "README.md"
 packages = [{include = "real_estate"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
 pandas = "^2.1.4"
-numpy = "^1.26.2"
+numpy = "^1.26.3"
 scikit-learn = "^1.3.2"
 lightgbm = "^4.2.0"
+hydra-core = "^1.3.2"
+
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.6.0"

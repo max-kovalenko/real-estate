@@ -1,3 +1,5 @@
+import subprocess
+
 import hydra
 import lightgbm as lgb
 import mlflow
@@ -56,12 +58,19 @@ class TrainRealEstate:
         mlflow.set_tracking_uri(uri=mlflow_uri)
         mlflow.set_experiment("RealEstate | LGBM")
         with mlflow.start_run():
+            git_commit_id = (
+                subprocess.check_output(["git", "log", "--pretty=oneline"])
+                .decode()
+                .splitlines()[0]
+                .split()[0]
+            )
             mlflow.log_params(
                 {
                     "n_estimators": n_estimators,
                     "max_depth": max_depth,
                     "learning_rate": learning_rate,
                     "num_leaves": num_leaves,
+                    "git_commit_id": git_commit_id,
                 }
             )
             feature_importances = dict(
@@ -80,7 +89,6 @@ class TrainRealEstate:
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
-    print(cfg)
     rlst = TrainRealEstate()
     rlst.train(**cfg["lgbm"]["train_params"], **cfg["mlflow"]["mlflow_server"])
 

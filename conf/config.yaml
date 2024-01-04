@@ -1,2 +1,3 @@
 defaults:
 - lgbm: best_model
+- mlflow: local_docker

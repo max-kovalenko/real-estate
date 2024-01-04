@@ -1,9 +1,12 @@
 import hydra
 import lightgbm as lgb
+import mlflow
 import pandas as pd
+from infer import InferRealEstate
 from joblib import dump
 from real_estate.data_modifyer import DataModifyer
 from real_estate.scaler import MyStandardScaler
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 class TrainRealEstate:
@@ -19,10 +22,10 @@ class TrainRealEstate:
 
         pass
 
-    def train(self, n_estimators, max_depth, learning_rate, num_leaves):
+    def train(self, n_estimators, max_depth, learning_rate, num_leaves, mlflow_uri):
         lgbm_regr = lgb.LGBMRegressor(
             random_state=self.RANDOM_STATE,
-            n_estimators=n_estimators,  # 100
+            n_estimators=n_estimators,
             max_depth=max_depth,
             learning_rate=learning_rate,
             num_leaves=num_leaves,
@@ -42,14 +45,44 @@ class TrainRealEstate:
             categorical_feature=["city", "state"],
         )
         dump({"model": lgbm_regr}, "data/lgbm_model.joblib")
+        df_val = InferRealEstate().df
+        X_val, y_val = df_val.drop("price", axis=1), df_val["price"]
+        prediction = lgbm_regr.predict(X_val)
+        metrics = {
+            "mse": mean_squared_error(y_val, prediction),
+            "r2_score": r2_score(y_val, prediction),
+        }
+        # Logging experiment
+        mlflow.set_tracking_uri(uri=mlflow_uri)
+        mlflow.set_experiment("RealEstate | LGBM")
+        with mlflow.start_run():
+            mlflow.log_params(
+                {
+                    "n_estimators": n_estimators,
+                    "max_depth": max_depth,
+                    "learning_rate": learning_rate,
+                    "num_leaves": num_leaves,
+                }
+            )
+            feature_importances = dict(
+                zip(self.X_train.columns, lgbm_regr.feature_importances_)
+            )
+            feature_importance_metrics = {
+                f"feature_importance_{feature_name}": imp_value
+                for feature_name, imp_value in feature_importances.items()
+            }
+            metrics.update(feature_importance_metrics)
+            mlflow.log_metrics(metrics)
+            mlflow.set_tag("Training Info", "Basic LGBM model")
 
     pass
 
 
 @hydra.main(version_base=None, config_path="conf", config_name="config")
 def main(cfg):
+    print(cfg)
     rlst = TrainRealEstate()
-    rlst.train(**cfg["lgbm"].items().__iter__().__next__()[1])
+    rlst.train(**cfg["lgbm"]["train_params"], **cfg["mlflow"]["mlflow_server"])
 
     pass
 

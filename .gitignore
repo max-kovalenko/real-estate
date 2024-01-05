@@ -162,6 +162,5 @@ cython_debug/
 # My locations
 #/data
 
-/data
 /draft
 /mlflow_docker
